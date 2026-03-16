@@ -1,0 +1,113 @@
+Table job_posting {
+  id bigint [pk, increment]
+  job_title_short varchar [not null]
+  job_title varchar [not null]
+  job_location varchar
+  job_via varchar
+  job_schedule_type varchar
+  job_work_from_home boolean [not null]
+  search_location varchar [not null]
+  job_posted_date date [not null]
+  job_no_degree_mention boolean [not null]
+  job_health_insurance boolean [not null]
+  job_country varchar
+  salary_rate varchar
+  salary_year_avg int
+  salary_hour_avg int
+  company_name varchar [not null]
+  job_skills varchar[]
+  job_type_skills jsonb
+
+  Note: 'Tabla original / staging del dataset sin normalizar'
+}
+
+Table job_posts {
+  id bigint [pk, increment]
+  title_short_id bigint [not null]
+  company_name_id bigint
+  via_id bigint
+  schedule_type_id bigint
+  location_id bigint
+  title varchar [not null]
+  search_location varchar [not null]
+  work_from_home boolean [not null]
+  posted_date date [not null]
+  no_degree_mention boolean [not null]
+  health_insurance boolean [not null]
+  salary_rate varchar
+  salary_year_avg float
+  salary_hour_avg float
+}
+
+Table companies {
+  id bigint [pk]
+  name varchar [not null]
+}
+
+Table locations {
+  id bigint [pk]
+  country_id bigint [not null]
+  name varchar [not null]
+}
+
+Table countries {
+  id bigint [pk]
+  name varchar [not null]
+}
+
+Table skills {
+  id bigint [pk]
+  name varchar [not null]
+}
+
+Table short_titles {
+  id bigint [pk]
+  name varchar [not null]
+}
+
+Table vias {
+  id bigint [pk]
+  name varchar [not null]
+}
+
+Table schedule_types {
+  id bigint [pk]
+  name varchar [not null]
+}
+
+Table types {
+  id bigint [pk]
+  name varchar [not null]
+}
+
+Table job_skills {
+  job_id bigint [not null]
+  skill_id bigint [not null]
+
+  indexes {
+    (job_id, skill_id) [pk]
+  }
+}
+
+Table skill_types {
+  skill_id bigint [not null]
+  type_id bigint [not null]
+
+  indexes {
+    (skill_id, type_id) [pk]
+  }
+}
+
+Ref: job_posts.title_short_id > short_titles.id
+Ref: job_posts.company_name_id > companies.id
+Ref: job_posts.via_id > vias.id
+Ref: job_posts.schedule_type_id > schedule_types.id
+Ref: job_posts.location_id > locations.id
+
+Ref: locations.country_id > countries.id
+
+Ref: job_skills.job_id > job_posts.id
+Ref: job_skills.skill_id > skills.id
+
+Ref: skill_types.skill_id > skills.id
+Ref: skill_types.type_id > types.id
