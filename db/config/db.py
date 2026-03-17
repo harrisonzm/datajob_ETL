@@ -2,8 +2,7 @@ from typing import Generator, Any
 from sqlalchemy import Engine
 import os
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import sessionmaker, Session, declarative_base
 from dotenv import load_dotenv
 
 # Cargar variables de entorno
