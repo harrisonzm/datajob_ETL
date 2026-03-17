@@ -2,6 +2,7 @@
 Modelos de datos para el esquema 3NF de job postings
 """
 
+from db.data_models.types import Type
 from db.data_models.companies import Company
 from db.data_models.countries import Country
 from db.data_models.locations import Location
@@ -15,6 +16,7 @@ from db.data_models.job_skills import JobPostSkill
 from db.data_models.job_posting import JobPosting
 
 __all__ = [
+    "Type",
     "Company",
     "Country",
     "Location",
