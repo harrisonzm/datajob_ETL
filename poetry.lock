@@ -389,14 +389,14 @@ psycopg2-binary = ">=2.9,<3.0"
 
 [[package]]
 name = "dbt-protos"
-version = "1.0.440"
+version = "1.0.443"
 description = "Public proto bindings for dbt"
 optional = false
 python-versions = ">=3.6"
 groups = ["main"]
 files = [
-    {file = "dbt_protos-1.0.440-py3-none-any.whl", hash = "sha256:775cafb29aa8265056faf77a6502b9acda7dfcd83ff0fc0e874f6fe4ad51217c"},
-    {file = "dbt_protos-1.0.440.tar.gz", hash = "sha256:27f690b4f6291fc5cdba01fee502e2e6fb1ec1fa080c7f127653ab0e2e8fb163"},
+    {file = "dbt_protos-1.0.443-py3-none-any.whl", hash = "sha256:f8c4bef794ee3c442248b4c8f7cba3d0af46ad389d4960c0a73a3b307f9434fa"},
+    {file = "dbt_protos-1.0.443.tar.gz", hash = "sha256:6cc4b2146ccdf77d597534a0525c97e37d68b0ca34334661f37650d81e09632b"},
 ]
 
 [package.dependencies]
@@ -1990,4 +1990,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = "^3.12"
-content-hash = "001a30566d106c49ebc15cf2d5be421a5bc641aaf7eb861d935d04b1ef55c627"
+content-hash = "047254b2339440924005c18bd4878359facd59301bfc5c20173680da4c126ef4"
