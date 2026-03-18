@@ -15,7 +15,7 @@ Pipeline ETL completo para análisis de datos de empleos con optimización autom
 este script ejecuta automaticamente:
 1. Detección de especificaciones del sistema
 2. Inicio de PostgreSQL en Docker
-3. Extracción de datos con chunk sizes óptimos
+3. Extracción de datos con chunk sizes óptimos o copy( segun se ponga True o false en el main.py)
 4. Tests de extracción (pytest)
 5. Generación de profiles.yml optimizado
 6. Transformaciones dbt
