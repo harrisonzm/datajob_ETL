@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "datajob-etl"
+name = "datajob-elt"
 version = "0.1.0"
 description = "Pipeline ETL para análisis de datos de empleos"
 authors = ["Harrison Zuleta Montoya <harrison.zmontoya@gmail.com>"]
