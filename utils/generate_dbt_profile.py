@@ -6,7 +6,7 @@ Script para generar profiles.yml de dbt con configuración óptima según el sis
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from system_optimizer import calculate_dbt_threads, get_system_specs
+from utils.system_optimizer import calculate_dbt_threads, get_system_specs
 
 # Cargar variables de entorno
 load_dotenv()
