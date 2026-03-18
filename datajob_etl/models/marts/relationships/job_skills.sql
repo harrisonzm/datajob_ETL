@@ -7,7 +7,7 @@ WITH job_skill_types_relationships AS (
         sjs.skill_name,
         sjs.type_name
     FROM {{ ref('stg_job_skills') }} sjs
-    WHERE sjs.type_name IS NOT NULL  -- Solo skills que tienen tipo definido
+    WHERE sjs.type_name IS NOT NULL  -- Only skills with defined type
 ),
 
 job_skills_with_lookups AS (

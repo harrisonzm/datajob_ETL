@@ -1,4 +1,10 @@
-{{ config(materialized='table') }}
+{{ config(
+    materialized='table',
+    indexes=[
+        {'columns': ['id'], 'unique': True},
+        {'columns': ['skill_id', 'type_id'], 'unique': True}
+    ]
+) }}
 
 
 WITH skill_type_relationships AS (
@@ -11,11 +17,9 @@ WITH skill_type_relationships AS (
 ),
 
 skill_types_with_ids AS (
-    SELECT 
+    SELECT DISTINCT
         ds.id AS skill_id,
-        dt.id AS type_id,
-        str.skill_name,
-        str.type_name
+        dt.id AS type_id
     FROM skill_type_relationships str
     INNER JOIN {{ ref('dim_skills') }} ds 
         ON str.skill_name = ds.name
@@ -27,4 +31,3 @@ SELECT ROW_NUMBER() OVER (
         ORDER BY skill_id, type_id
     ) AS id, skill_id, type_id
 FROM skill_types_with_ids
-ORDER BY skill_id, type_id
