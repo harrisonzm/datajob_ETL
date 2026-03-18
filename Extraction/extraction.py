@@ -10,7 +10,7 @@ from sqlalchemy.dialects.postgresql import ARRAY, JSON
 from concurrent.futures import ThreadPoolExecutor
 from io import StringIO
 import ast
-from typing import Dict, List, Optional
+from utils.system_optimizer import calculate_optimal_chunk_size, get_system_specs
 
 # Configurar logging
 logger = logging.getLogger(__name__)
@@ -256,12 +256,18 @@ def load_optimized_fast(path: str) -> bool:
         # 5. Preparar columna ID
         df['id'] = None
         
-        # 6. Inserción optimizada con chunk size grande
+        # 6. Inserción optimizada con chunk size calculado automáticamente
         logger.info("PASO 5: Insertando datos en PostgreSQL")
         
-        # Chunk size óptimo: 50k-100k registros por chunk
-        optimal_chunksize = 50000
-        logger.info(f"Usando chunk size: {optimal_chunksize:,} registros")
+        # Calcular chunk size óptimo según especificaciones del sistema
+        specs = get_system_specs()
+        optimal_chunksize = calculate_optimal_chunk_size(
+            total_rows=len(df),
+            available_memory_gb=specs['available_memory_gb'],
+            cpu_cores=specs['cpu_cores']
+        )
+        logger.info(f"Sistema: {specs['cpu_cores']} cores, {specs['available_memory_gb']:.1f}GB RAM disponible")
+        logger.info(f"Chunk size óptimo calculado: {optimal_chunksize:,} registros")
         
         insert_start = time.time()
         
