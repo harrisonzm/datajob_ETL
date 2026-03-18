@@ -2,17 +2,24 @@
 
 Pipeline ETL completo para análisis de datos de empleos con optimización automática y tests de calidad.
 
+![CI Pipeline](https://github.com/[tu-usuario]/datajob_ETL/workflows/CI%20Pipeline/badge.svg)
+![Code Quality](https://github.com/[tu-usuario]/datajob_ETL/workflows/Code%20Quality/badge.svg)
+
 ## 🚀 Inicio Rápido
 
 ### Para Evaluadores (Entrevista Técnica)
 
-Ejecuta el pipeline completo con un solo comando:
-
+**Ejecución local:**
 ```powershell
 .\evaluate.ps1
 ```
 
-Este script ejecuta automáticamente:
+**Ejecución en Docker:**
+```powershell
+.\run-docker-pipeline.ps1
+```
+
+Ambos scripts ejecutan automáticamente:
 1. Detección de especificaciones del sistema
 2. Inicio de PostgreSQL en Docker
 3. Extracción de datos con chunk sizes óptimos
@@ -145,6 +152,12 @@ datajob_etl/
 
 Accede a la UI en http://localhost:8080 (usuario: `airflow`, password: `airflow`)
 
+**Servicios incluidos:**
+- PostgreSQL (datos): puerto 5433
+- PostgreSQL (Airflow metadata): puerto 5434  
+- Airflow Webserver: puerto 8080
+- Airflow Scheduler: background
+
 ### Características del DAG
 
 - ✅ Ejecución automática diaria a las 2 AM
@@ -157,6 +170,43 @@ Accede a la UI en http://localhost:8080 (usuario: `airflow`, password: `airflow`
 - ✅ Alertas por email configurables
 
 Ver documentación completa en [airflow_setup.md](airflow_setup.md)
+
+## 🔄 CI/CD Pipeline
+
+### GitHub Actions Workflows
+
+El proyecto incluye pipelines automatizados de CI/CD:
+
+**CI Pipeline** (`.github/workflows/ci.yml`):
+- Linting con flake8 y black
+- Tests unitarios con pytest
+- Tests de integración con dbt
+- Cobertura de código con Codecov
+- Ejecuta en PostgreSQL real
+
+**Code Quality** (`.github/workflows/code-quality.yml`):
+- Análisis de seguridad con bandit
+- Verificación de dependencias con safety
+- Type checking con mypy
+- Análisis de complejidad con radon
+
+### Ejecutar localmente
+
+```bash
+# Linting
+poetry run flake8 extraction/ db/ utils/
+poetry run black --check extraction/ db/ utils/
+
+# Tests
+poetry run pytest tests/ -v --cov
+
+# Security scan
+poetry run bandit -r extraction/ db/ utils/
+
+# Type checking
+poetry run mypy extraction/ db/ utils/
+```
+
 # Data Engineering Technical Assessment
 
 A data pipeline to transform `data_jobs.csv` into a normalized **3NF** relational model, using an **ELT** architecture, automated tests, logging, and a database ready for downstream analytics.

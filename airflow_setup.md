@@ -8,16 +8,16 @@
 # Crear directorios necesarios
 mkdir airflow_dags, airflow_logs, airflow_plugins
 
-# Configurar UID para Airflow (Linux/Mac)
-# En Windows, omitir este paso
-echo "AIRFLOW_UID=50000" > .env.airflow
-
-# Inicializar base de datos de Airflow
-docker compose -f docker-compose-airflow.yaml up airflow-init
-
-# Iniciar servicios de Airflow
-docker compose -f docker-compose-airflow.yaml up -d
+# Iniciar todo el stack (DB + Airflow)
+.\start_airflow.ps1
 ```
+
+Este script automáticamente:
+- Verifica Docker
+- Crea directorios necesarios
+- Inicializa Airflow
+- Inicia PostgreSQL (datos + metadata de Airflow)
+- Inicia Airflow webserver y scheduler
 
 ### 2. Acceder a la UI de Airflow
 
@@ -33,7 +33,7 @@ En la UI de Airflow:
 2. Crea nueva conexión con estos datos:
    - Connection Id: `postgres_datajob`
    - Connection Type: `Postgres`
-   - Host: `postgres-datajob`
+   - Host: `db`
    - Schema: `job_posting`
    - Login: `postgres`
    - Password: `postgres`
@@ -88,27 +88,36 @@ Puedes cambiarlo a:
 ## Comandos Útiles
 
 ```powershell
-# Ver logs de Airflow
-docker compose -f docker-compose-airflow.yaml logs -f airflow-scheduler
+# Ver logs de todos los servicios
+docker compose logs -f
+
+# Ver logs solo de Airflow
+docker compose logs -f airflow-scheduler airflow-webserver
 
 # Reiniciar servicios
-docker compose -f docker-compose-airflow.yaml restart
+docker compose restart
 
-# Detener Airflow
-docker compose -f docker-compose-airflow.yaml down
+# Detener todo
+docker compose down
 
 # Detener y limpiar volúmenes
-docker compose -f docker-compose-airflow.yaml down -v
+docker compose down -v
 
 # Ver estado de servicios
-docker compose -f docker-compose-airflow.yaml ps
+docker compose ps
+
+# Solo iniciar la base de datos
+docker compose up -d db
+
+# Solo iniciar Airflow
+docker compose up -d airflow-webserver airflow-scheduler
 ```
 
 ## Monitoreo y Alertas
 
 ### Email Notifications
 
-Configura SMTP en `docker-compose-airflow.yaml`:
+Configura SMTP en `compose.yaml` agregando estas variables al environment de airflow-common:
 
 ```yaml
 AIRFLOW__SMTP__SMTP_HOST: smtp.gmail.com
@@ -123,8 +132,7 @@ AIRFLOW__SMTP__SMTP_MAIL_FROM: airflow@company.com
 Instala el provider:
 
 ```bash
-docker compose -f docker-compose-airflow.yaml exec airflow-webserver \
-  pip install apache-airflow-providers-slack
+docker compose exec airflow-webserver pip install apache-airflow-providers-slack
 ```
 
 Agrega callback en el DAG:
@@ -162,7 +170,7 @@ sudo chown -R 50000:0 airflow_logs airflow_dags airflow_plugins
 
 ### Error: "Module not found"
 
-El DAG necesita acceso a tu código. Verifica que el volumen esté montado:
+El DAG necesita acceso a tu código. Verifica que el volumen esté montado en `compose.yaml`:
 
 ```yaml
 volumes:
@@ -174,7 +182,7 @@ volumes:
 Verifica que las bases de datos estén corriendo:
 
 ```powershell
-docker compose -f docker-compose-airflow.yaml ps
+docker compose ps
 ```
 
 ## Ventajas de esta Integración

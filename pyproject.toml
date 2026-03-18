@@ -1,16 +1,13 @@
 [tool.poetry]
 name = "datajob-etl"
 version = "0.1.0"
-description = ""
+description = "Pipeline ETL para análisis de datos de empleos"
 authors = ["Harrison Zuleta Montoya <harrison.zmontoya@gmail.com>"]
 readme = "README.md"
 packages = [
     { include = "utils" },
     { include = "db" },
-    { include = "actions" },
-    { include = "extraction" },
-    { include = "transformation" },
-    { include = "load" }
+    { include = "extraction" }
 ]
 
 [tool.poetry.dependencies]

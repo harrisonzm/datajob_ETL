@@ -1,56 +1,55 @@
 # syntax=docker/dockerfile:1
 
-# Comments are provided throughout this file to help you get started.
-# If you need more help, visit the Dockerfile reference guide at
-# https://docs.docker.com/go/dockerfile-reference/
-
-# Want to help us make this template better? Share your feedback here: https://forms.gle/ybq9Krt8jtBL3iCk7
-
 ARG PYTHON_VERSION=3.12.7
 FROM python:${PYTHON_VERSION}-slim as base
 
-# Prevents Python from writing pyc files.
-ENV PYTHONDONTWRITEBYTECODE=1
+# Instalar PowerShell y dependencias del sistema
+RUN apt-get update && apt-get install -y \
+    wget \
+    apt-transport-https \
+    software-properties-common \
+    curl \
+    && wget -q https://packages.microsoft.com/config/debian/11/packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && apt-get update \
+    && apt-get install -y powershell \
+    && rm -rf /var/lib/apt/lists/*
 
-# Keeps Python from buffering stdout and stderr to avoid situations where
-# the application crashes without emitting any logs due to buffering.
+# Configurar Python
+ENV PYTHONDONTWRITEBYTECODE=1
 ENV PYTHONUNBUFFERED=1
 
 WORKDIR /app
 
-# Install Poetry
+# Instalar Poetry
 RUN pip install poetry
 
-# Configure Poetry to not create virtual environments (not needed in Docker)
+# Configurar Poetry
 ENV POETRY_VIRTUALENVS_CREATE=false
+ENV POETRY_NO_INTERACTION=1
+ENV POETRY_CACHE_DIR=/tmp/poetry_cache
 
-# Create a non-privileged user that the app will run under.
-# See https://docs.docker.com/go/dockerfile-user-best-practices/
-ARG UID=10001
-RUN adduser \
-    --disabled-password \
-    --gecos "" \
-    --home "/nonexistent" \
-    --shell "/sbin/nologin" \
-    --no-create-home \
-    --uid "${UID}" \
-    appuser
-
-# Copy dependency files
+# Copiar archivos de dependencias
 COPY pyproject.toml poetry.lock* ./
 
-# Install dependencies using Poetry
-RUN --mount=type=cache,target=/root/.cache/pypoetry \
-    poetry install --no-root --no-interaction --no-ansi
+# Instalar dependencias
+RUN poetry install --no-dev && rm -rf $POETRY_CACHE_DIR
 
-# Switch to the non-privileged user to run the application.
-USER appuser
-
-# Copy the source code into the container.
+# Copiar código fuente
 COPY . .
 
-# Expose the port that the application listens on.
+# Crear directorio de logs
+RUN mkdir -p logs
+
+# Variables de entorno para la base de datos
+ENV DB_HOST=db
+ENV DB_PORT=5432
+ENV DB_NAME=job_posting
+ENV DB_USER=postgres
+ENV DB_PASSWORD=postgres
+
+# Exponer puerto (si es necesario)
 EXPOSE 8000
 
-# Run the application.
-CMD ["poetry", "run", "python", "main.py"]
+# Comando por defecto: ejecutar el pipeline completo
+CMD ["pwsh", "-File", "evaluate.ps1"]

@@ -35,16 +35,21 @@ try {
 }
 
 # Verificar Docker
-try {
-    docker ps >$null 2>&1
-    if ($LASTEXITCODE -ne 0) {
-        Write-Host "ERROR: Docker no está corriendo. Por favor inicia Docker Desktop" -ForegroundColor Red
+Write-Host "Verificando entorno de ejecución..." -ForegroundColor Yellow
+if ($env:DOCKER_CONTAINER) {
+    Write-Host "✓ Ejecutándose en contenedor Docker" -ForegroundColor Green
+} else {
+    try {
+        docker ps >$null 2>&1
+        if ($LASTEXITCODE -ne 0) {
+            Write-Host "ERROR: Docker no está corriendo. Por favor inicia Docker Desktop" -ForegroundColor Red
+            exit 1
+        }
+        Write-Host "✓ Docker está corriendo" -ForegroundColor Green
+    } catch {
+        Write-Host "ERROR: Docker no está instalado" -ForegroundColor Red
         exit 1
     }
-    Write-Host "✓ Docker está corriendo" -ForegroundColor Green
-} catch {
-    Write-Host "ERROR: Docker no está instalado" -ForegroundColor Red
-    exit 1
 }
 
 Write-Host "`n--- INICIANDO PIPELINE ---`n" -ForegroundColor Cyan
@@ -54,27 +59,31 @@ Write-Host "Detectando especificaciones del sistema..." -ForegroundColor Yellow
 poetry run python utils/system_optimizer.py
 Write-Host ""
 
-# 0. Iniciar PostgreSQL
-Write-Host "[0/6] Iniciando PostgreSQL..." -ForegroundColor Yellow
-docker compose up -d db
-if ($LASTEXITCODE -ne 0) { exit 1 }
+# 0. Iniciar PostgreSQL (solo si no estamos en Docker)
+if (-not $env:DOCKER_CONTAINER) {
+    Write-Host "[0/6] Iniciando PostgreSQL..." -ForegroundColor Yellow
+    docker compose up -d db
+    if ($LASTEXITCODE -ne 0) { exit 1 }
 
-Write-Host "Esperando a que PostgreSQL esté listo..." -ForegroundColor Gray
-$ready = $false
-for ($i = 1; $i -le 30; $i++) {
-    docker compose exec -T db pg_isready -U postgres >$null 2>&1
-    if ($LASTEXITCODE -eq 0) {
-        $ready = $true
-        break
+    Write-Host "Esperando a que PostgreSQL esté listo..." -ForegroundColor Gray
+    $ready = $false
+    for ($i = 1; $i -le 30; $i++) {
+        docker compose exec -T db pg_isready -U postgres >$null 2>&1
+        if ($LASTEXITCODE -eq 0) {
+            $ready = $true
+            break
+        }
+        Start-Sleep -Seconds 2
     }
-    Start-Sleep -Seconds 2
-}
 
-if (-not $ready) {
-    Write-Host "ERROR: PostgreSQL no respondió" -ForegroundColor Red
-    exit 1
+    if (-not $ready) {
+        Write-Host "ERROR: PostgreSQL no respondió" -ForegroundColor Red
+        exit 1
+    }
+    Write-Host "✓ PostgreSQL listo`n" -ForegroundColor Green
+} else {
+    Write-Host "[0/6] PostgreSQL ya está disponible en Docker" -ForegroundColor Green
 }
-Write-Host "✓ PostgreSQL listo`n" -ForegroundColor Green
 
 # 1. Extracción
 Write-Host "[1/6] Ejecutando extracción de datos..." -ForegroundColor Yellow

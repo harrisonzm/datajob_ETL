@@ -163,12 +163,12 @@ with TaskGroup('dbt_transformations', dag=dag) as dbt_transformations:
     
     dbt_deps = BashOperator(
         task_id='dbt_deps',
-        bash_command=f'cd {PROJECT_ROOT}/datajob_etl && poetry run dbt deps',
+        bash_command=f'pip install dbt-postgres==1.7.4 && cd {PROJECT_ROOT}/datajob_etl && dbt deps',
     )
     
     dbt_run = BashOperator(
         task_id='dbt_run',
-        bash_command=f'cd {PROJECT_ROOT}/datajob_etl && poetry run dbt run',
+        bash_command=f'cd {PROJECT_ROOT}/datajob_etl && dbt run',
         execution_timeout=timedelta(minutes=20),
     )
     
@@ -179,13 +179,13 @@ with TaskGroup('quality_tests', dag=dag) as quality_tests:
     
     dbt_test = BashOperator(
         task_id='dbt_test',
-        bash_command=f'cd {PROJECT_ROOT}/datajob_etl && poetry run dbt test',
+        bash_command=f'cd {PROJECT_ROOT}/datajob_etl && dbt test',
         execution_timeout=timedelta(minutes=10),
     )
     
     pytest_tests = BashOperator(
         task_id='pytest_tests',
-        bash_command=f'cd {PROJECT_ROOT} && poetry run pytest tests/test_extraction.py -v',
+        bash_command=f'pip install pytest pandas==2.1.4 && cd {PROJECT_ROOT} && python -m pytest tests/test_extraction.py -v',
     )
     
     [dbt_test, pytest_tests]
@@ -193,7 +193,7 @@ with TaskGroup('quality_tests', dag=dag) as quality_tests:
 # Tarea final: Generar documentación
 generate_docs = BashOperator(
     task_id='generate_dbt_docs',
-    bash_command=f'cd {PROJECT_ROOT}/datajob_etl && poetry run dbt docs generate',
+    bash_command=f'cd {PROJECT_ROOT}/datajob_etl && dbt docs generate',
     dag=dag,
 )
 
