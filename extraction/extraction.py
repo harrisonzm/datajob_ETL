@@ -27,6 +27,7 @@ def setup_logging(log_level=logging.INFO):
 
     # Crear directorio logs si no existe
     import os
+
     os.makedirs("logs", exist_ok=True)
 
     # Handler para consola
