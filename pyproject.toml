@@ -4,7 +4,11 @@ version = "0.1.0"
 description = "Pipeline ETL para análisis de datos de empleos"
 authors = ["Harrison Zuleta Montoya <harrison.zmontoya@gmail.com>"]
 readme = "README.md"
-packages = []
+packages = [
+    { include = "extraction" },
+    { include = "db" },
+    { include = "utils" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
