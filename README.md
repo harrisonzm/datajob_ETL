@@ -11,12 +11,8 @@ Pipeline ETL completo para análisis de datos de empleos con optimización autom
 .\evaluate.ps1
 ```
 
-**Ejecución en Docker:**
-```powershell
-.\run-docker-pipeline.ps1
-```
 
-Ambos scripts ejecutan automáticamente:
+este script ejecuta automaticamente:
 1. Detección de especificaciones del sistema
 2. Inicio de PostgreSQL en Docker
 3. Extracción de datos con chunk sizes óptimos
