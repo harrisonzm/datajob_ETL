@@ -42,10 +42,19 @@ jobs:
         run: |
           poetry run pip install flake8 black
 
+      - name: Debug - List directories
+        run: |
+          pwd
+          ls -la
+          ls -la extraction/ db/ utils/ || echo "Some directories not found"
+
       - name: Run flake8
         run: |
-          poetry run flake8 extraction/ db/ utils/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          poetry run flake8 extraction/ db/ utils/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          poetry run flake8 extraction/ db/ utils/ --count --select=E9,F63,F7,F82 --show-source --statistics || echo "Flake8 failed, trying alternative approach"
+          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.git,__pycache__,.venv,venv,dist,build,*.egg-info,.pytest_cache,datajob_etl/target,datajob_etl/dbt_packages
+
+      - name: Run flake8 complexity check
+        run: poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.git,__pycache__,.venv,venv,dist,build,*.egg-info,.pytest_cache,datajob_etl/target,datajob_etl/dbt_packages
 
       - name: Run black check
         run: poetry run black --check extraction/ db/ utils/
