@@ -2,28 +2,36 @@
 """
 Script para generar profiles.yml de dbt con configuración óptima según el sistema
 """
+
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-from system_optimizer import calculate_dbt_threads, get_system_specs
+
+# Import condicional para evitar imports circulares
+try:
+    from utils.system_optimizer import calculate_dbt_threads, get_system_specs
+except ImportError:
+    # Si se ejecuta como script independiente
+    from system_optimizer import calculate_dbt_threads, get_system_specs
 
 # Cargar variables de entorno
 load_dotenv()
 
+
 def generate_dbt_profile():
     """Genera el archivo profiles.yml con configuración óptima"""
-    
+
     # Obtener configuración de base de datos desde .env
     db_host = os.getenv("DB_HOST", "localhost")
     db_port = os.getenv("DB_PORT", "5432")
     db_name = os.getenv("DB_NAME", "job_posting")
     db_user = os.getenv("DB_USER", "postgres")
     db_password = os.getenv("DB_PASSWORD", "postgres")
-    
+
     # Calcular threads óptimos
     specs = get_system_specs()
     optimal_threads = calculate_dbt_threads()
-    
+
     # Contenido del profiles.yml
     profile_content = f"""# dbt profiles.yml
 # Generado automáticamente según especificaciones del sistema
@@ -56,14 +64,14 @@ datajob_etl:
       keepalives_idle: 0
       connect_timeout: 10
 """
-    
+
     # Ruta del archivo
     profile_path = Path("datajob_etl/profiles.yml")
-    
+
     # Crear el archivo
-    with open(profile_path, 'w') as f:
+    with open(profile_path, "w", encoding="utf-8") as f:
         f.write(profile_content)
-    
+
     print("=" * 70)
     print(" " * 20 + "DBT PROFILE GENERADO")
     print("=" * 70)
@@ -81,6 +89,7 @@ datajob_etl:
     print("⚠️  NOTA: Este archivo contiene credenciales y está en .gitignore")
     print("   No lo subas al repositorio.")
     print()
+
 
 if __name__ == "__main__":
     generate_dbt_profile()

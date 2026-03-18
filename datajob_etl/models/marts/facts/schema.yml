@@ -11,12 +11,13 @@ models:
           - not_null
 
       - name: company_id
-        description: "Foreign key to dim_companies (nullable)"
+        description: "Foreign key to dim_companies (nullable - NULL cuando el nombre de la compañía no está disponible)"
         tests:
           - relationships:
               arguments:
                 to: ref('dim_companies')
                 field: id
+                where: "company_id is not null"
 
       - name: country_id
         description: "Foreign key to dim_countries (nullable)"
@@ -27,12 +28,13 @@ models:
                 field: id
 
       - name: location_id
-        description: "Foreign key to dim_locations (nullable)"
+        description: "Foreign key to dim_locations (nullable - NULL para trabajos remotos sin restricción geográfica o datos incompletos)"
         tests:
           - relationships:
               arguments:
                 to: ref('dim_locations')
                 field: id
+                where: "location_id is not null"
 
       - name: via_id
         description: "Foreign key to dim_vias (nullable)"

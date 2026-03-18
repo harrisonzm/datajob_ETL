@@ -2,9 +2,12 @@ name: CI Pipeline Fixed
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, develop, "feat/*", "fix/*"]
   pull_request:
     branches: [main, develop]
+
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   lint:
@@ -42,13 +45,21 @@ jobs:
         run: |
           poetry run pip install flake8 black
 
+      - name: Debug - List directories
+        run: |
+          pwd
+          ls -la
+          ls -la extraction/ db/ utils/ || echo "Some directories not found"
+
       - name: Run flake8
         run: |
-          poetry run flake8 extraction/ db/ utils/ --count --select=E9,F63,F7,F82 --show-source --statistics
-          poetry run flake8 extraction/ db/ utils/ --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics
+          poetry run flake8 . --count --select=E9,F63,F7,F82 --show-source --statistics --exclude=.git,__pycache__,.venv,venv,dist,build,*.egg-info,.pytest_cache,datajob_etl/target,datajob_etl/dbt_packages,airflow_logs,logs
+
+      - name: Run flake8 complexity check
+        run: poetry run flake8 . --count --exit-zero --max-complexity=10 --max-line-length=127 --statistics --exclude=.git,__pycache__,.venv,venv,dist,build,*.egg-info,.pytest_cache,datajob_etl/target,datajob_etl/dbt_packages,airflow_logs,logs
 
       - name: Run black check
-        run: poetry run black --check extraction/ db/ utils/
+        run: poetry run black --check . --exclude="/(\.git|__pycache__|\.venv|venv|dist|build|\.egg-info|\.pytest_cache|datajob_etl/target|datajob_etl/dbt_packages|airflow_logs|logs)/"
 
   test:
     name: Testing
@@ -94,16 +105,51 @@ jobs:
 
       - name: Create test CSV
         run: |
-          echo "job_title_short,job_title,job_location,job_via,job_schedule_type,job_work_from_home,search_location,job_posted_date,job_no_degree_mention,job_health_insurance,job_country,salary_rate,salary_year_avg,salary_hour_avg,company_name,job_skills,job_type_skills" > data_jobs.csv
-          echo "Data Engineer,Senior Data Engineer,New York NY,LinkedIn,Full-time,False,New York,2024-01-01,False,True,United States,year,120000.0,,Tech Corp,\"['python', 'sql']\",\"{\\\"programming\\\": [\\\"python\\\", \\\"sql\\\"]}\"" >> data_jobs.csv
+          cp test_data_sample.csv data_jobs.csv
 
-      - name: Run pytest
+      - name: Run main.py to setup data
         env:
           DB_HOST: localhost
           DB_PORT: 5432
           DB_NAME: job_posting
           DB_USER: postgres
           DB_PASSWORD: postgres
+          PYTHONPATH: .
+        run: |
+          poetry run python main.py
+
+      - name: Generate dbt profile
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: job_posting
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          PYTHONPATH: .
+        run: poetry run python utils/generate_dbt_profile.py
+
+      - name: Run dbt deps
+        working-directory: datajob_etl
+        run: poetry run dbt deps --profiles-dir .
+
+      - name: Run dbt run to create tables
+        working-directory: datajob_etl
+        run: poetry run dbt run --profiles-dir .
+
+      - name: Debug - Check created tables
+        env:
+          PGPASSWORD: postgres
+        run: |
+          psql -h localhost -U postgres -d job_posting -c "\dt public_job_posting.*"
+
+      - name: Run pytest (extraction tests only)
+        env:
+          DB_HOST: localhost
+          DB_PORT: 5432
+          DB_NAME: job_posting
+          DB_USER: postgres
+          DB_PASSWORD: postgres
+          PYTHONPATH: .
         run: |
           poetry run pytest tests/ -v --cov=extraction --cov=db --cov-report=xml --cov-report=term
 
@@ -152,6 +198,7 @@ jobs:
           DB_NAME: job_posting
           DB_USER: postgres
           DB_PASSWORD: postgres
+          PYTHONPATH: .
         run: poetry run python utils/generate_dbt_profile.py
 
       - name: Load sample data
@@ -161,23 +208,23 @@ jobs:
           DB_NAME: job_posting
           DB_USER: postgres
           DB_PASSWORD: postgres
+          PYTHONPATH: .
         run: |
-          echo "job_title_short,job_title,job_location,job_via,job_schedule_type,job_work_from_home,search_location,job_posted_date,job_no_degree_mention,job_health_insurance,job_country,salary_rate,salary_year_avg,salary_hour_avg,company_name,job_skills,job_type_skills" > data_jobs.csv
-          echo "Data Engineer,Senior Data Engineer,New York NY,LinkedIn,Full-time,False,New York,2024-01-01,False,True,United States,year,120000.0,,Tech Corp,\"['python', 'sql']\",\"{\\\"programming\\\": [\\\"python\\\", \\\"sql\\\"]}\"" >> data_jobs.csv
+          cp test_data_sample.csv data_jobs.csv
           poetry run python main.py
 
       - name: Run dbt deps
         working-directory: datajob_etl
-        run: poetry run dbt deps
+        run: poetry run dbt deps --profiles-dir .
 
       - name: Run dbt compile
         working-directory: datajob_etl
-        run: poetry run dbt compile
+        run: poetry run dbt compile --profiles-dir .
 
       - name: Run dbt run
         working-directory: datajob_etl
-        run: poetry run dbt run
+        run: poetry run dbt run --profiles-dir .
 
       - name: Run dbt test
         working-directory: datajob_etl
-        run: poetry run dbt test
+        run: poetry run dbt test --profiles-dir .
