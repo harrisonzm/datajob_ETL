@@ -9,7 +9,6 @@ packages = [
     { include = "db" },
     { include = "utils" },
     { include = "tests" },
-    { include = "logs" }
 ]
 
 [tool.poetry.dependencies]
