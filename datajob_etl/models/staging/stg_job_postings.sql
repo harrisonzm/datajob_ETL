@@ -1,4 +1,15 @@
-{{ config(materialized='view') }}
+{{ config(
+    materialized='table',
+    indexes=[
+        {'columns': ['id'], 'unique': True},
+        {'columns': ['company_name_clean']},
+        {'columns': ['job_country_clean']},
+        {'columns': ['job_location_clean']},
+        {'columns': ['job_via_clean']},
+        {'columns': ['job_schedule_type']},
+        {'columns': ['job_title_short_clean']}
+    ]
+) }}
 
 
 WITH source_data AS (
@@ -9,13 +20,13 @@ cleaned_data AS (
     SELECT
         id,
 
--- Limpiar job_title_short
+-- Clean job_title_short
 CASE
     WHEN TRIM(job_title_short) = '' THEN NULL
     ELSE TRIM(job_title_short)
 END AS job_title_short_clean,
 
--- Limpiar job_title
+-- Clean job_title
 CASE
     WHEN TRIM(job_title) = '' THEN NULL
     ELSE TRIM(
@@ -28,7 +39,7 @@ CASE
     )
 END AS job_title_clean,
 
--- Limpiar job_location
+-- Clean job_location
 CASE
     WHEN TRIM(job_location) = '' THEN NULL
     ELSE TRIM(
@@ -41,7 +52,7 @@ CASE
     )
 END AS job_location_clean,
 
--- Limpiar job_via (remover prefijos)
+-- Clean job_via (remove prefixes)
 CASE
     WHEN TRIM(job_via) = '' THEN NULL
     WHEN LOWER(TRIM(job_via)) LIKE 'via %' THEN TRIM(
@@ -66,43 +77,43 @@ CASE
     )
 END AS job_via_clean,
 
--- Estandarizar job_schedule_type
+-- Standardize job_schedule_type
 CASE
     WHEN TRIM(job_schedule_type) = '' THEN NULL
     ELSE TRIM(job_schedule_type)
 END AS job_schedule_type,
 
--- Campos booleanos (ya procesados en extracción)
+-- Boolean fields (already processed in extraction)
 job_work_from_home,
 
--- Limpiar search_location
+-- Clean search_location
 CASE
     WHEN TRIM(search_location) = '' THEN NULL
     ELSE TRIM(search_location)
 END AS search_location_clean,
 
--- Fecha (ya procesada en extracción)
+-- Date field (already processed in extraction)
 job_posted_date,
 
--- Campos booleanos
+-- Boolean fields
 job_no_degree_mention, job_health_insurance,
 
--- Limpiar job_country
+-- Clean job_country
 CASE
     WHEN TRIM(job_country) = '' THEN NULL
     ELSE TRIM(job_country)
 END AS job_country_clean,
 
--- Limpiar salary_rate
+-- Clean salary_rate
 CASE
     WHEN TRIM(salary_rate) = '' THEN NULL
     ELSE TRIM(salary_rate)
 END AS salary_rate_clean,
 
--- Campos numéricos (ya procesados en extracción)
+-- Numeric fields (already processed in extraction)
 salary_year_avg, salary_hour_avg,
 
--- Limpiar company_name
+-- Clean company_name
 CASE
     WHEN TRIM(company_name) = '' THEN NULL
     ELSE TRIM(
@@ -115,7 +126,7 @@ CASE
     )
 END AS company_name_clean,
 
--- Arrays y JSON (ya procesados en extracción)
+-- Arrays and JSON (already processed in extraction)
 job_skills, job_type_skills FROM source_data )
 
 SELECT * FROM cleaned_data

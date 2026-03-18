@@ -5,9 +5,16 @@ sources:
     description: "Raw data from job posting extraction"
     database: job_posting # Especificar la base de datos
     schema: public # Schema por defecto de PostgreSQL
+    freshness:
+      warn_after: { count: 7, period: day }
+      error_after: { count: 30, period: day }
     tables:
       - name: job_posting
         description: "Raw job posting data with all original fields"
+        loaded_at_field: job_posted_date
+        freshness:
+          warn_after: { count: 365, period: day }
+          error_after: { count: 730, period: day }
         columns:
           - name: id
             description: "Primary key"

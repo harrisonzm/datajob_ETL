@@ -14,30 +14,40 @@ models:
         tests:
           - not_null
           - relationships:
-              to: ref('dim_skills')
-              field: id
+              arguments:
+                to: ref('dim_skills')
+                field: id
       - name: type_id
         description: "Foreign key to dim_types"
         tests:
           - not_null
           - relationships:
-              to: ref('dim_types')
-              field: id
+              arguments:
+                to: ref('dim_types')
+                field: id
 
   - name: job_skills
     description: "Relationship table mapping job posts to skill_types (many-to-many)"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - job_id
+              - skill_types_id
     columns:
       - name: job_id
         description: "Foreign key to fact_job_posts"
         tests:
           - not_null
           - relationships:
-              to: ref('fact_job_posts')
-              field: id
+              arguments:
+                to: ref('fact_job_posts')
+                field: id
       - name: skill_types_id
         description: "Foreign key to skill_types table"
         tests:
           - not_null
           - relationships:
-              to: ref('skill_types')
-              field: id
+              arguments:
+                to: ref('skill_types')
+                field: id

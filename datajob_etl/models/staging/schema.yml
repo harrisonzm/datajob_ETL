@@ -22,7 +22,7 @@ models:
       - name: job_via_clean
         description: "Cleaned source platform with prefixes removed"
 
-      - name: job_schedule_type_clean
+      - name: job_schedule_type
         description: "Standardized schedule type (English only)"
 
       - name: search_location_clean
@@ -45,14 +45,23 @@ models:
 
   - name: stg_job_skills
     description: "Staging model that unnests and normalizes job skills from both job_skills array and job_type_skills JSON"
+    tests:
+      - dbt_utils.unique_combination_of_columns:
+          arguments:
+            combination_of_columns:
+              - job_posting_id
+              - skill_name
+              - type_name
+              - skill_source
     columns:
       - name: job_posting_id
         description: "Reference to the original job posting"
         tests:
           - not_null
           - relationships:
-              to: ref('stg_job_postings')
-              field: id
+              arguments:
+                to: ref('stg_job_postings')
+                field: id
 
       - name: skill_name
         description: "Cleaned and normalized skill name (lowercase, trimmed)"
@@ -67,4 +76,5 @@ models:
         tests:
           - not_null
           - accepted_values:
-              values: ["direct", "typed"]
+              arguments:
+                values: ["direct", "typed"]
