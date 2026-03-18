@@ -2,9 +2,6 @@
 
 Pipeline ETL completo para análisis de datos de empleos con optimización automática y tests de calidad.
 
-![CI Pipeline](https://github.com/[tu-usuario]/datajob_ETL/workflows/CI%20Pipeline/badge.svg)
-![Code Quality](https://github.com/[tu-usuario]/datajob_ETL/workflows/Code%20Quality/badge.svg)
-
 ## 🚀 Inicio Rápido
 
 ### Para Evaluadores (Entrevista Técnica)
