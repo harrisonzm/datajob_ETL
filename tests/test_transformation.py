@@ -38,11 +38,11 @@ class TestTransformation:
                 result = conn.execute(text(f"""
                     SELECT COUNT(*) 
                     FROM information_schema.tables 
-                    WHERE table_name = '{model}' AND table_schema = 'job_posting'
+                    WHERE table_name = '{model}' AND table_schema = 'public_job_posting'
                 """))
                 assert (
                     result.scalar() == 1
-                ), f"Modelo {model} no existe en schema job_posting"
+                ), f"Modelo {model} no existe en schema public_job_posting"
 
         print(f"✅ Todos los {len(expected_models)} modelos dbt existen")
 
@@ -76,7 +76,6 @@ class TestTransformation:
             dimensions_with_columns = [
                 ("dim_companies", "name"),
                 ("dim_countries", "name"),
-                ("dim_locations", "location"),  # locations usa 'location' no 'name'
                 ("dim_vias", "name"),
                 ("dim_schedule_types", "name"),
                 ("dim_short_titles", "name"),
@@ -99,6 +98,20 @@ class TestTransformation:
                 assert count > 0, f"{dim} está vacía"
 
                 print(f"✅ {dim}: {count:,} registros únicos")
+
+            # Test especial para dim_locations: la combinación location+country_id debe ser única
+            result = conn.execute(text(f"""
+                SELECT COUNT(*) - COUNT(DISTINCT (location, country_id)) as duplicates
+                FROM {dbt_table('dim_locations')}
+            """))
+            duplicates = result.scalar()
+            assert duplicates == 0, f"dim_locations tiene combinaciones location+country_id duplicadas"
+
+            result = conn.execute(text(f"SELECT COUNT(*) FROM {dbt_table('dim_locations')}"))
+            count = result.scalar()
+            assert count > 0, f"dim_locations está vacía"
+
+            print(f"✅ dim_locations: {count:,} registros únicos (location+country_id)")
 
     def test_fact_table_integrity(self):
         """Test integridad de la tabla de hechos"""
