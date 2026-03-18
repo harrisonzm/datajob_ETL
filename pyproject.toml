@@ -4,6 +4,18 @@ version = "0.1.0"
 description = "Pipeline ETL para análisis de datos de empleos"
 authors = ["Harrison Zuleta Montoya <harrison.zmontoya@gmail.com>"]
 readme = "README.md"
+packages = [
+    { include = "airflow_dags" },
+    { include = "airflow_plugins" },
+    { include = "dags" },
+    { include = "datajob_etl" },
+    { include = "db" },
+    { include = "extraction" },
+    { include = "logs" },
+    { include = "plugins" },
+    { include = "tests" },
+    { include = "utils" }
+]
 
 [tool.poetry.dependencies]
 python = "^3.12"
