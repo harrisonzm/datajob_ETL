@@ -124,12 +124,14 @@ with TaskGroup('validations', dag=dag) as validations:
         task_id='check_csv',
         python_callable=check_csv_exists,
         provide_context=True,
+        dag=dag,
     )
     
     test_db = PythonOperator(
         task_id='test_db_connection',
         python_callable=test_db_connection,
         provide_context=True,
+        dag=dag,
     )
     
     check_csv >> test_db
@@ -142,12 +144,14 @@ with TaskGroup('extraction', dag=dag) as extraction:
         python_callable=run_extraction,
         provide_context=True,
         execution_timeout=timedelta(minutes=30),
+        dag=dag,
     )
     
     verify_extract = PythonOperator(
         task_id='verify_extraction',
         python_callable=verify_extraction,
         provide_context=True,
+        dag=dag,
     )
     
     run_extract >> verify_extract
@@ -159,17 +163,20 @@ with TaskGroup('dbt_transformations', dag=dag) as dbt_transformations:
         task_id='generate_dbt_profile',
         python_callable=generate_dbt_profile,
         provide_context=True,
+        dag=dag,
     )
     
     dbt_deps = BashOperator(
         task_id='dbt_deps',
         bash_command=f'pip install dbt-postgres==1.7.4 && cd {PROJECT_ROOT}/datajob_etl && dbt deps',
+        dag=dag,
     )
     
     dbt_run = BashOperator(
         task_id='dbt_run',
         bash_command=f'cd {PROJECT_ROOT}/datajob_etl && dbt run',
         execution_timeout=timedelta(minutes=20),
+        dag=dag,
     )
     
     gen_profile >> dbt_deps >> dbt_run
@@ -181,11 +188,13 @@ with TaskGroup('quality_tests', dag=dag) as quality_tests:
         task_id='dbt_test',
         bash_command=f'cd {PROJECT_ROOT}/datajob_etl && dbt test',
         execution_timeout=timedelta(minutes=10),
+        dag=dag,
     )
     
     pytest_tests = BashOperator(
         task_id='pytest_tests',
         bash_command=f'pip install pytest pandas==2.1.4 && cd {PROJECT_ROOT} && python -m pytest tests/test_extraction.py -v',
+        dag=dag,
     )
     
     [dbt_test, pytest_tests]

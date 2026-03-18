@@ -1,4 +1,4 @@
-name: CI Pipeline
+name: CI Pipeline Fixed
 
 on:
   push:
@@ -34,12 +34,13 @@ jobs:
           path: .venv
           key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
 
-      - name: Install dependencies
+      - name: Install dependencies only
         if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction --only=main
 
-      - name: Install project
-        run: poetry install --no-interaction
+      - name: Install linting tools
+        run: |
+          poetry run pip install flake8 black
 
       - name: Run flake8
         run: |
@@ -84,19 +85,12 @@ jobs:
           virtualenvs-create: true
           virtualenvs-in-project: true
 
-      - name: Load cached venv
-        id: cached-poetry-dependencies
-        uses: actions/cache@v4
-        with:
-          path: .venv
-          key: venv-${{ runner.os }}-${{ hashFiles('**/poetry.lock') }}
-
       - name: Install dependencies
-        if: steps.cached-poetry-dependencies.outputs.cache-hit != 'true'
-        run: poetry install --no-interaction --no-root
+        run: poetry install --no-interaction --only=main
 
-      - name: Install project
-        run: poetry install --no-interaction
+      - name: Install test dependencies
+        run: |
+          poetry run pip install pytest pytest-cov
 
       - name: Create test CSV
         run: |
@@ -112,14 +106,6 @@ jobs:
           DB_PASSWORD: postgres
         run: |
           poetry run pytest tests/ -v --cov=extraction --cov=db --cov-report=xml --cov-report=term
-
-      - name: Upload coverage to Codecov
-        uses: codecov/codecov-action@v4
-        with:
-          file: ./coverage.xml
-          flags: unittests
-          name: codecov-umbrella
-          fail_ci_if_error: false
 
   dbt-test:
     name: dbt Tests
@@ -157,7 +143,7 @@ jobs:
           virtualenvs-in-project: true
 
       - name: Install dependencies
-        run: poetry install --no-interaction
+        run: poetry install --no-interaction --only=main
 
       - name: Generate dbt profile
         env:
