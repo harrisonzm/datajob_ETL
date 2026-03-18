@@ -69,7 +69,7 @@ datajob_etl:
     profile_path = Path("datajob_etl/profiles.yml")
 
     # Crear el archivo
-    with open(profile_path, "w") as f:
+    with open(profile_path, "w", encoding="utf-8") as f:
         f.write(profile_content)
 
     print("=" * 70)

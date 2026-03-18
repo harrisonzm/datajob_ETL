@@ -29,12 +29,14 @@ models:
     # Staging models - VIEWs (no duplican datos, solo transforman)
     staging:
       +materialized: view
+      +schema: job_posting
       +docs:
         node_color: "lightblue"
 
     # Dimensional models - tables for performance
     marts:
       +materialized: table
+      +schema: job_posting
       +docs:
         node_color: "lightgreen"
 

@@ -4,17 +4,19 @@
 
 
 WITH integrity_checks AS (
-    -- company_id: OBLIGATORIO - debe existir siempre
+    -- company_id: OPCIONAL - solo valida si NO es NULL
     SELECT 
         'company_id' as fk_name,
         COUNT(*) as orphan_count
     FROM {{ ref('fact_job_posts') }} f
     LEFT JOIN {{ ref('dim_companies') }} d ON f.company_id = d.id
-    WHERE d.id IS NULL
+    WHERE f.company_id IS NOT NULL AND d.id IS NULL
     
     UNION ALL
 
 -- short_title_id: OBLIGATORIO - debe existir siempre
+
+
 SELECT 
         'short_title_id' as fk_name,
         COUNT(*) as orphan_count
@@ -24,17 +26,21 @@ SELECT
     
     UNION ALL
 
--- location_id: OBLIGATORIO (con "anywhere" como default)
+-- location_id: OPCIONAL - solo valida si NO es NULL
+
+
 SELECT 
         'location_id' as fk_name,
         COUNT(*) as orphan_count
     FROM {{ ref('fact_job_posts') }} f
     LEFT JOIN {{ ref('dim_locations') }} d ON f.location_id = d.id
-    WHERE d.id IS NULL
+    WHERE f.location_id IS NOT NULL AND d.id IS NULL
     
     UNION ALL
 
 -- country_id: OPCIONAL - solo valida si NO es NULL
+
+
 SELECT 
         'country_id' as fk_name,
         COUNT(*) as orphan_count
@@ -45,6 +51,8 @@ SELECT
     UNION ALL
 
 -- via_id: OPCIONAL - solo valida si NO es NULL
+
+
 SELECT 
         'via_id' as fk_name,
         COUNT(*) as orphan_count

@@ -52,21 +52,31 @@ CASE
     )
 END AS job_location_clean,
 
--- Clean job_via (remove prefixes)
+-- Clean job_via (remove prefixes like "Via -", "Melalui -", etc.)
 CASE
     WHEN TRIM(job_via) = '' THEN NULL
+    -- Si contiene " - ", eliminar todo hasta después del " - "
+    WHEN job_via LIKE '%-%' THEN TRIM(
+        SUBSTRING(
+            job_via
+            FROM POSITION(' - ' IN job_via) + 3
+        )
+    )
+    -- Si empieza con "via " (case insensitive), eliminar el prefijo
     WHEN LOWER(TRIM(job_via)) LIKE 'via %' THEN TRIM(
         SUBSTRING(
             job_via
             FROM 5
         )
     )
+    -- Si empieza con "melalui " (indonesio para "via"), eliminar el prefijo
     WHEN LOWER(TRIM(job_via)) LIKE 'melalui %' THEN TRIM(
         SUBSTRING(
             job_via
             FROM 9
         )
     )
+    -- Limpiar caracteres especiales no deseados
     ELSE TRIM(
         REGEXP_REPLACE(
             job_via,
@@ -77,9 +87,14 @@ CASE
     )
 END AS job_via_clean,
 
--- Standardize job_schedule_type
+-- Standardize job_schedule_type (normalize specific cases found in data)
 CASE
     WHEN TRIM(job_schedule_type) = '' THEN NULL
+    -- "Pekerjaan tetap" (indonesio) = Full-time
+    WHEN LOWER(TRIM(job_schedule_type)) = 'pekerjaan tetap' THEN 'Full-time'
+    -- "Per diem" se mantiene como está (es un término aceptado internacionalmente)
+    WHEN LOWER(TRIM(job_schedule_type)) = 'per diem' THEN 'On Demand'
+    -- Mantener otros valores como están
     ELSE TRIM(job_schedule_type)
 END AS job_schedule_type,
 
@@ -104,9 +119,16 @@ CASE
     ELSE TRIM(job_country)
 END AS job_country_clean,
 
--- Clean salary_rate
+-- Clean salary_rate: solo mantener si tiene valor correspondiente
 CASE
-    WHEN TRIM(salary_rate) = '' THEN NULL
+    WHEN LOWER(TRIM(salary_rate)) = 'year'
+    AND salary_year_avg IS NULL THEN NULL
+    -- Si es 'hour' pero no hay salary_hour_avg, poner NULL
+    WHEN LOWER(TRIM(salary_rate)) = 'hour'
+    AND salary_hour_avg IS NULL THEN NULL
+    -- Si es 'week' pero no hay salary_year_avg ni salary_hour_avg, poner NULL
+    WHEN LOWER(TRIM(salary_rate)) != 'hour'
+    AND LOWER(TRIM(salary_rate)) != 'year' THEN NULL
     ELSE TRIM(salary_rate)
 END AS salary_rate_clean,
 
