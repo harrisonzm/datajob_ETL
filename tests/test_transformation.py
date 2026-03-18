@@ -105,9 +105,13 @@ class TestTransformation:
                 FROM {dbt_table('dim_locations')}
             """))
             duplicates = result.scalar()
-            assert duplicates == 0, f"dim_locations tiene combinaciones location+country_id duplicadas"
+            assert (
+                duplicates == 0
+            ), f"dim_locations tiene combinaciones location+country_id duplicadas"
 
-            result = conn.execute(text(f"SELECT COUNT(*) FROM {dbt_table('dim_locations')}"))
+            result = conn.execute(
+                text(f"SELECT COUNT(*) FROM {dbt_table('dim_locations')}")
+            )
             count = result.scalar()
             assert count > 0, f"dim_locations está vacía"
 
